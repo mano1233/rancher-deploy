@@ -1,0 +1,9 @@
+---
+server_api: https://rancher-workstation/v3
+auth_token: token-v7zxq:4lb6qxmqmtpdc8zx2f2nkzg5blhzdf6d2cmltlrftc2wqms57q2sz8
+cluster_name: neo-sanbox
+server: https://rancher-workstation.lab.test
+token: gxwp4cq4t4t9jfxtdbfflh8twxqrqxzk6g58cd46zr8n8h2b9lf8dc 
+checksum: e7b6f0e82cdf300ce085367716790f3f0573bff501013af2d8d692aa41527ed2 
+
+

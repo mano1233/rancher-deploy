@@ -1,0 +1,54 @@
+{
+    "amazonElasticContainerServiceConfig": null,
+    "answers": null,
+    "azureKubernetesServiceConfig": null,
+    "clusterTemplateRevisionId": "",
+    "defaultClusterRoleForProjectMembers": "",
+    "defaultPodSecurityPolicyTemplateId": "",
+    "dockerRootDir": "/var/lib/docker",
+    "enableClusterAlerting": false,
+    "enableClusterMonitoring": false,
+    "googleKubernetesEngineConfig": null,
+    "k3sConfig": null,
+    "localClusterAuthEndpoint": null,
+    "name": "{{cluster_name}}",
+    "rancherKubernetesEngineConfig": {
+        "addonJobTimeout": 30,
+        "ignoreDockerVersion": true,
+        "sshAgentAuth": false,
+        "type": "rancherKubernetesEngineConfig",
+        "authentication": {
+            "type": "authnConfig",
+            "strategy": "x509"
+        },
+        "network": {
+            "type": "networkConfig",
+            "plugin": "canal"
+        },
+        "ingress": {
+            "type": "ingressConfig",
+            "provider": "nginx"
+        },
+        "monitoring": {
+            "type": "monitoringConfig",
+            "provider": "metrics-server"
+        },
+        "services": {
+            "type": "rkeConfigServices",
+            "kubeApi": {
+                "podSecurityPolicy": false,
+                "type": "kubeAPIService"
+            },
+            "etcd": {
+                "snapshot": false,
+                "type": "etcdService",
+                "extraArgs": {
+                    "heartbeat-interval": 500,
+                    "election-timeout": 5000
+                }
+            }
+        }
+    },
+    "scheduledClusterScan": null,
+    "windowsPreferedCluster": false
+}

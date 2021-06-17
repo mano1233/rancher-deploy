@@ -1,0 +1,90 @@
+---
+
+- name: edit /etc/hosts
+  hosts: owner 
+  gather_facts: no
+  user: ansible 
+  become: yes
+  tasks:
+    - name: gather required vars
+      include_vars: ../vars/rancher-cluster.yml
+    - name: create json request
+      template:
+        src: ../templates/cluster_request.json.j2
+        dest: /tmp/cluster_request.json
+        owner: ansible
+        group: ansible
+        mode: '0644'
+      vars: 
+        cluster_name: "{{cluster_name}}"
+    - name: create rancher cluster
+      uri:
+        url: "{{server_api}}/clusters"
+        method: POST
+        validate_certs: false
+        body: "{{ lookup('file','/tmp/cluster_request.json') }}"
+        body_format: json
+        status_code: 201
+        headers:
+          Authorization: "Bearer {{auth_token}}"
+      register: response
+    - name: debug cluster_var
+      debug:
+        msg:  "{{response}}"
+    - name: create json request
+      template:
+        src: ../templates/tokencreate_request.json.j2
+        dest: /tmp/tokencreate_request.json
+        owner: ansible
+        group: ansible
+        mode: '0644'
+      vars: 
+        clusterid: "{{response.json.id}}"
+    - name: create rancher cluster
+      uri:                                                              
+        url: "{{response.json.links.clusterRegistrationTokens}}"                                  
+        method: POST                                                    
+        validate_certs: false                                           
+        body: "{{ lookup('file','/tmp/tokencreate_request.json') }}"  
+        body_format: json                                               
+        status_code: 201                                                
+        headers:                                                        
+          Authorization: "Bearer {{auth_token}}"                        
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

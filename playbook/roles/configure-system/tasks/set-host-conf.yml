@@ -1,0 +1,56 @@
+---
+
+- name: edit /etc/hosts
+  hosts: all 
+  gather_facts: yes
+  user: ansible 
+  become: yes  
+  tasks:
+    - name: import dns server's ip
+      include_vars: ../vars/dns-vars.yml  
+    - name: disable ipv6 iptable
+      shell: >
+        echo 0 > /proc/sys/net/ipv6/conf/default/disable_ipv6 &&
+        echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+    - name: edit hosts file
+      template: 
+        src: ../templates/hosts.j2 
+        dest: '/etc/hosts'
+        owner: root 
+        group: root
+        mode: 0644
+    - name: copy NetworkManager conf
+      copy:
+        src: ../files/NetworkManager.conf
+        dest: /etc/NetworkManager/NetworkManager.conf
+        owner: root
+        group: root
+        mode: 0644
+    - name: reload NetworkManager service
+      systemd:
+        state: reloaded
+        name: NetworkManager
+    - name: edit resolve conf
+      ansible.builtin.copy:
+        src: ../files/resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0644
+    - name: set cron job to run on restart
+      cron:
+        user: root
+        name: reovlesetup
+        cron_file: resolvconfig
+        special_time: reboot
+        state: present
+        job: echo "nameserver {{main_dns}}" > /etc/resovl.conf
+    - name: run on all secondary dns server
+      cron:
+        user: root
+        name: "{{item.key}}"
+        cron_file: resolvconfig
+        special_time: reboot
+        state: present
+        job: echo "nameserver {{ item.value }}" >> /etc/resovl.conf
+      loop: "{{sec_dns| dict2items}}"

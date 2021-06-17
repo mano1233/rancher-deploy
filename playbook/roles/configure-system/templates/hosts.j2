@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
+
+10.100.11.161    rancher-workstation alica-master rancher-workstation.lab.test
+{% for key, value in groups.items() %}
+{% set gather_names = key.split("_")%}
+{% if gather_names[0] == 'user'%}
+{{  value[0]  }}    {{  gather_names[1]  }}-workstation {{  gather_names[1]  }}
+{% endif %}
+{% endfor %}

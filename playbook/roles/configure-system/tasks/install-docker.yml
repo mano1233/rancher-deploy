@@ -1,0 +1,23 @@
+---
+
+- name: install docker 
+  hosts: all 
+  gather_facts: yes
+  user: ansible 
+  become: yes  
+  tasks:
+    - name: install docker  
+      pacman: 
+        name: docker 
+        state: present
+    - name: activate docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+    - name: install docker module
+      pip:
+        name: docker
+    - name: install docker-compose module
+      pip:
+        name: docker-compose

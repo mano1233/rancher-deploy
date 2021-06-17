@@ -1,0 +1,18 @@
+---
+
+- name: create master rancher
+  hosts: user_alicia
+  user: ansible
+  gather_facts: no 
+  become: yes  
+  tasks:
+    - name: configure rancher container  
+      docker_container: 
+        name: rancher-master 
+        image: rancher/rancher:v2.4.8
+        ports:
+        - "80:80"
+        - "4443:443"
+        privileged: yes
+        restart_policy: unless-stopped
+        state: started

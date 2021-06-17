@@ -1,0 +1,110 @@
+---
+
+- name: create master rancher
+  hosts: all
+  gather_facts: yes
+  user: ansible 
+  become: yes  
+  tasks:
+    - name: install iscsi package
+      pacman:
+        name: open-iscsi
+    - name: activate iscsid
+      systemd:
+        name: iscsid
+        enabled: yes
+        state: started
+    - name: Include vars of rancher cluster.
+      include_vars: ../vars/rancher-cluster.yml
+    - name: check if rancher agent exists
+      shell: docker ps | { grep k8s || :; }
+      register: rancher_con
+    - debug:
+        var: rancher_con
+    - name: configure rancher container for control and master
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --controlplane --etcd
+      when: 
+        - "'masters' in group_names"
+        - "'slaves' not in group_names"
+        - "'DB' in group_names"
+        - "rancher_con.stdout == ''"
+    - name: configure rancher container for Generic                            
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --etcd --controlplane --worker
+      when:
+        -  "'DB' in group_names"
+        - "'masters' in group_names"
+        - "'slaves' in group_names" 
+        - "rancher_con.stdout == ''"
+    - name: configure rancher container for control
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --controlplane
+      when:
+        -  "'DB' not in group_names"
+        - "'masters' in group_names"
+        - "'slaves' not in group_names" 
+        - "rancher_con.stdout == ''"
+    - name: pause for master startup
+      pause:
+        minutes: 3
+    - name: configure rancher container for workers
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --worker
+      when: 
+        - "rancher_con.stdout == ''"
+        - "'slaves' in group_names"
+        - "'DB' not in group_names"
+        - "'masters' not in group_names"
+    - name: configure rancher container for DB and worker                                                 
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --etcd --worker
+      when:
+        -  "'DB' in group_names"
+        - "'masters' not in group_names"
+        - "'slaves' in group_names" 
+        - "rancher_con.stdout == ''"
+    - name: configure rancher container for control and worker
+      shell: > 
+        docker run -d --privileged --restart=unless-stopped --net=host --name=k8s_rancher_agent_orc
+        -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run
+        rancher/rancher-agent:v2.4.8 --server "{{server}}"
+        --token "{{token}}"
+        --node-name "{{ansible_facts['hostname']}}"
+        --ca-checksum "{{checksum}}"
+        --etcd --worker
+      when:
+        -  "'DB' not in group_names"
+        - "'masters' in group_names"
+        - "'slaves' in group_names" 
+        - "rancher_con.stdout == ''"

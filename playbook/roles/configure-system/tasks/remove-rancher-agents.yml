@@ -1,0 +1,30 @@
+---
+
+- name: remove rancher instance
+  hosts: all 
+  gather_facts: yes
+  user: ansible 
+  become: yes  
+  tasks:
+    - name: copy script to host
+      ansible.builtin.copy:
+        src: ../files/clean_rancher.sh
+        dest: /home/ansible/clean_rancher.sh
+        owner: ansible
+        group: ansible
+        mode: 0744
+    - name: run cleaning script
+      shell: /home/ansible/clean_rancher.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
